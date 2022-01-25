@@ -1,0 +1,27 @@
+#root {
+    display: flex;
+    height: 100vh;
+}
+
+.root__sidebar {
+    width: 30%;
+    /* background-color: antiquewhite; */
+}
+
+.root__main {
+    flex: 1;
+}
+
+#header {
+    position: sticky;
+    top: 0;
+    height: 25vh;
+    background-color: aquamarine;
+}
+
+.task-view {
+    display: block;
+    height: 75vh;
+    overflow-y: auto;
+    background-color: azure;
+}
