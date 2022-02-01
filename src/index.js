@@ -1,6 +1,5 @@
-import UserInterface from "./modules/UserInterface";
+import UI from "./modules/UI";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './styles.css';
+import './styles.css'
 
-//loading the app
-document.addEventListener('DOMContentLoaded', UserInterface.load);
+document.addEventListener('DOMContentLoaded', UI.loadUI);
