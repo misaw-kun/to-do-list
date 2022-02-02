@@ -7,16 +7,27 @@ export default class Store {
         const form = document.getElementById('todo-form');
         form.addEventListener('submit', e => {
             e.preventDefault();
-            const input = document.getElementById('todo-input');
-            const cleanedInput = input.value.trim();
-            const todo = Task(cleanedInput);
+            const title = document.getElementById('todo-title');
+            const details = document.getElementById('todo-detail').value;
+            const date = document.getElementById('todo-date').value;
+            const priority = document.getElementsByName('btnradio');
+
+            let selectedValue = "";
+
+            for(let p of priority) {
+                if(p.checked) {
+                    selectedValue = p.id;
+                }
+            }
+            const cleanedTitle = title.value.trim();
+            const todo = Task(cleanedTitle, details, date, selectedValue);
 
             if(todo.title !== '') {
                 Store._todoItems.push(todo);
-                console.log(this._todoItems)
-                UI.renderTodo(todo);
-                input.value = '';
-                input.focus();
+                console.log(this._todoItems);
+                UI.renderInbox(todo);
+                form.reset();
+                localStorage.setItem('todoItemsRef', JSON.stringify(Store._todoItems));
             }
         })
     }

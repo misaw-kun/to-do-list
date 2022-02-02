@@ -79,3 +79,7 @@ button, input[type="submit"], input[type="reset"] {
    box-shadow: 0 6px 14px 0 #666;
    transform: scale(1.05);
 }
+
+.mod {
+    height: 55vh;
+}

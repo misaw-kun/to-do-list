@@ -1,8 +1,11 @@
-export function Task(title) {
+export function Task(title, details="no details", date="no due date", priority="low") {
     return {
         id: Date.now(),
         checked: false,
-        title: title
+        title: title,
+        details: details,
+        date: date,
+        priority: priority
     }
 }
 
