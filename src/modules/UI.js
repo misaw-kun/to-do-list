@@ -1,6 +1,6 @@
 // render today and this week with filtering ig..
 
-import { format, isThisWeek } from "date-fns";
+import { format, isThisWeek, isToday, subDays, toDate } from "date-fns";
 import Store from "./Store";
 import { getDateFormatted } from "./Utils";
 export default class UI {
@@ -97,9 +97,9 @@ export default class UI {
                                                 </form>
                                             </div>
 
-                                            <div class="tab-pane fade" id="project">hii</div>
+                                            <div class="tab-pane fade" id="project">wip soon or bored...</div>
 
-                                            <div class="tab-pane fade" id="notes">hiii</div>
+                                            <div class="tab-pane fade" id="notes">wip soon or bored...</div>
                                         </div>
                                     </main>
                                 </div>
@@ -112,6 +112,7 @@ export default class UI {
         `
         Store.fetchTodos();
         UI.filterToday();
+        UI.filterThisWeek();
         Store.addTask();
     }
 
@@ -190,9 +191,19 @@ export default class UI {
 
     static filterToday() {
         Store._todoItems.filter(todo => {
-            // console.log(todo);
-            const taskDate = new Date(todo.date)
-            return isThisWeek()
+            const taskDate = new Date(todo.date);
+            if(isToday(taskDate)) {
+                UI.renderTodos(todo, 'today')
+            }
+        })
+    }
+
+    static filterThisWeek() {
+        Store._todoItems.filter(todo => {
+            const taskDate = new Date(todo.date);
+            if(isThisWeek(subDays(taskDate, 1))) {
+                UI.renderTodos(todo, 'week');
+            }
         })
     }
 }
