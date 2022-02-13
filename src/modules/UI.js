@@ -1,9 +1,14 @@
+// render today and this week with filtering ig..
+
+import { format, isThisWeek } from "date-fns";
 import Store from "./Store";
+import { getDateFormatted } from "./Utils";
 export default class UI {
 
     static loadUI() {
         const root = document.getElementById('root');
         root.classList.add('container-lg');
+        let minDate = format(Date.now(), 'yyyy-MM-dd');
         root.innerHTML += `
         <div class="inner-container">
             <aside class="inner-container__sidebar">
@@ -25,9 +30,9 @@ export default class UI {
                 <div class="tab-content">
                     <div id="inbox" class="tab-pane task-list list-group list-group-flush active p-4">
                     </div>
-                    <div id="today" class="tab-pane task-list list-group list-group-flush">
+                    <div id="today" class="tab-pane task-list list-group list-group-flush p-4">
                     </div>
-                    <div id="week" class="tab-pane task-list list-group list-group-flush">
+                    <div id="week" class="tab-pane task-list list-group list-group-flush p-4">
                     </div>
                 </div>
 
@@ -37,7 +42,7 @@ export default class UI {
                     <div class="modal-dialog modal-lg modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">add something ...</h5>
+                                <h5 class="modal-title">add something ...</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"><button>
                             </div>
                             <div class="modal-body p-0">
@@ -46,7 +51,7 @@ export default class UI {
                                         <div class="d-flex align-items-start nav nav-pills flex-column p-3 m-2">
                                                 <button type="button" class="nav-link active p-2 fs-2" data-bs-toggle="pill" data-bs-target="#task">#task</button>
 
-                                                <button type="button" class="nav-link p-2 fs-2" data-bs-toggle="pill" data-bs-target="#project">#project</button>
+                                                <button type="button" class="nav-link p-2 fs-2" data-bs-toggle="pill" data-bs-target="#project">#proj</button>
 
                                                 <button type="button" class="nav-link p-2 fs-2" data-bs-toggle="pill" data-bs-target="#notes">#note</button>
                                         </div>
@@ -71,7 +76,9 @@ export default class UI {
                                                     <div class="input-group p-3">
                                                         <span class="input-group-text">date</span>
                                                         <input type="date"
-                                                        id="todo-date" class="form-control">
+                                                        id="todo-date"
+                                                        min=${minDate}
+                                                        required class="form-control">
                                                     </div>
                                                     <div class="btn-group p-3">
                                                         <input type="radio" class="btn-check" name="btnradio" id="low">
@@ -103,35 +110,90 @@ export default class UI {
             </main>
         </div>
         `
-        const ref = localStorage.getItem('todoItemsRef');
-            if (ref) {
-                let todoItems = JSON.parse(ref);
-                todoItems.forEach(t => {
-                UI.renderInbox(t);
-                });
-            }
+        Store.fetchTodos();
+        UI.filterToday();
         Store.addTask();
     }
 
-    static renderInbox(todo) {
-        const list = document.getElementById('inbox');
+    static toggleDone(key, tab) {
+        const index = Store._todoItems.findIndex(item => item.id === Number(key));
+        Store._todoItems[index].checked = !Store._todoItems[index].checked;
+        UI.renderTodos(Store._todoItems[index], tab);
+    }
+
+    static renderTodos(todo, tab) {
+        // console.log(todo, tab);
+        const list = document.getElementById(tab);
+        const currentItem = document.querySelector(`[data-key='${todo.id}']`);
+
+        if(todo.deleted) {
+            currentItem.remove();
+            return
+        }
+
         const isChecked = todo.checked ? 'done' : '';
         let priority = '';
         switch(todo.priority) {
             case 'low': priority = 'list-group-item-success';
-                break;
+            break;
             case 'med': priority = 'list-group-item-warning';
-                break;
+            break;
             case 'high': priority = 'list-group-item-danger';
-                break;
+            break;
         }
-        const listItem = document.createElement('label');
-        listItem.setAttribute('class', `todo-item list-group-item list-group-item-action ${isChecked} p-3 fs-2 ${priority}`)
+        const listItem = document.createElement('div');
+        listItem.setAttribute('class', `todo-item list-group-item list-group-item p-3 fs-2 ${priority} d-flex justify-content-start align-items-center`);
         listItem.setAttribute('data-key', todo.id);
 
         listItem.innerHTML =
-            `<input id="${todo.id}" class="form-check-input me-1" type="checkbox" /> <span>${todo.title}<span> <span>${todo.date}</span>`
-        list.append(listItem);
+            `<button class="btn btn-outline-danger me-2 js-delete-task bi bi-trash"></button>
+            <span class="js-tick ${isChecked} flex-grow-1">${todo.title}</span>
+            <small class="lead me-2">${getDateFormatted(todo.date)}</small>
+            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#info-modal-${todo.id}">Info</button>
+            <div id="info-modal-${todo.id}" class="modal fade">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">task details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="lead">title: ${todo.title}</p>
+                                <p class="lead">details: ${todo.details}</p>
+                                <p class="lead">date: ${getDateFormatted(todo.date)}</p>
+                                <p class="lead">priority: ${todo.priority}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+        //checking if the node already contains the listItem, for every tab
+        if(list.contains(currentItem)) {
+            list.replaceChild(listItem, currentItem);
+        } else {
+            list.append(listItem);
+        }
+
+
+        listItem.addEventListener('click', e => {
+            if(e.target.classList.contains('js-delete-task')) {
+                const itemKey = e.target.parentElement.dataset.key;
+                Store.deleteTask(itemKey, tab);
+            }
+            if(e.target.classList.contains('js-tick')) {
+                const itemKey = e.target.parentElement.dataset.key;
+                UI.toggleDone(itemKey, tab);
+            }
+        });
+    }
+
+    static filterToday() {
+        Store._todoItems.filter(todo => {
+            // console.log(todo);
+            const taskDate = new Date(todo.date)
+            return isThisWeek()
+        })
     }
 }
 

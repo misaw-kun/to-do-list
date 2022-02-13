@@ -83,3 +83,11 @@ button, input[type="submit"], input[type="reset"] {
 .mod {
     height: 55vh;
 }
+
+.done {
+    text-decoration: line-through 0.15em;
+}
+
+.todo-item {
+    cursor: pointer;
+}

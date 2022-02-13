@@ -20,15 +20,33 @@ export default class Store {
                 }
             }
             const cleanedTitle = title.value.trim();
-            const todo = Task(cleanedTitle, details, date, selectedValue);
+            const todo = Task(cleanedTitle, date, details, selectedValue);
 
             if(todo.title !== '') {
-                Store._todoItems.push(todo);
-                console.log(this._todoItems);
-                UI.renderInbox(todo);
+                this._todoItems.push(todo);
+                UI.renderTodos(todo, 'inbox');
                 form.reset();
-                localStorage.setItem('todoItemsRef', JSON.stringify(Store._todoItems));
+                localStorage.setItem(String(todo.id), JSON.stringify(todo));
             }
         })
+    }
+
+   static deleteTask(key, tab) {
+        const index = this._todoItems.findIndex(item => item.id === Number(key));
+        const todo = {
+            deleted: true,
+            ...this._todoItems[index]
+        };
+        this._todoItems = this._todoItems.filter(item => item.id !== Number(key));
+        localStorage.removeItem(todo.id);
+        UI.renderTodos(todo, tab);
+    }
+
+    static fetchTodos() {
+        for (let index = 0; index < localStorage.length; index++) {
+            let todo = JSON.parse(localStorage.getItem(localStorage.key(index)));
+            this._todoItems.push(todo);
+            UI.renderTodos(todo, 'inbox');
+        }
     }
 }
